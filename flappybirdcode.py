@@ -7,7 +7,9 @@ HEIGHT=600
 
 fps=60
 x=0
+
 gameover=False
+gamestart=False
 
 screen= pygame.display.set_mode((WIDTH,HEIGHT))
 bg=pygame.image.load("pro game devloper/flappy bird/images/bg.png")
@@ -21,6 +23,7 @@ class bird(pygame.sprite.Sprite):
         self.index=0
         for bird in range (1,4):
             img=pygame.image.load(f"pro game devloper/flappy bird/images/bird{bird}.png")
+            
             self.images.append(img)
         self.image=self.images[self.index]
         self.rect=self.image.get_rect()
@@ -39,17 +42,40 @@ class bird(pygame.sprite.Sprite):
                     self.index=0
                 self.image=self.images[self.index]
             
+        if gamestart==True:
+            self.velocity+=0.2
+            self.rect.y+=self.velocity
+            if self.rect.y>480:
+                self.rect.y=480
+                gameover=True
+            if pygame.mouse.get_pressed()[0]==1 and self.click==False:  
+                self.velocity= -5
+                self.click=True
+            if pygame.mouse.get_pressed()[0]==0:
+                self.click=False
+            if gameover==False:
+                self.image=pygame.transform.rotate(self.images[self.index],self.velocity*-5)
 
-        self.velocity+=0.2
-        self.rect.y+=self.velocity
-        if self.rect.y>480:
-            self.rect.y=480
-            gameover=True
-        if pygame.mouse.get_pressed()[0]==1 and self.click==False:  
-            self.velocity= -5
-            self.click=True
-        if pygame.mouse.get_pressed()[0]==0:
-            self.click=False
+
+
+class pipe(pygame.sprite.Sprite):
+    def __init__(self,x,y,direction):
+        pygame.sprite.Sprite.__init__(self)
+        
+        self.image=pygame.image.load("pro game devloper/flappy bird/images/pipe.png")
+        self.rect=self.image.get_rect()
+
+        if direction==1:
+            self.image=pygame.transform.flip(self.image,False,True)
+            self.rect.bottomleft=[x,y]
+        if direction==-1:
+            self.rect.topleft=[x,y]
+
+    def update(self):
+        self.rect.x-=10
+        if self.rect.right==0:
+            self.kill()
+
 
 
 
@@ -57,6 +83,10 @@ bird_group=pygame.sprite.Group()
 
 flappy1=bird(150,300)
 bird_group.add(flappy1)
+
+pipe_group=pygame.sprite.Group()
+
+
 
 
 
@@ -72,11 +102,23 @@ while run:
         x-=3
         if x<-100:
             x=0
+    top_pipe=pipe(800,220,1)
+    bottom_pipe=pipe(800,320,-1)
+
+    pipe_group.add(top_pipe)
+    pipe_group.add(bottom_pipe)
 
     bird_group.draw(screen)
     bird_group.update()
+    pipe_group.draw(screen)
+    pipe_group.update()
+
+    
 
     for event in pygame.event.get():
         if event.type== pygame.QUIT:
             pygame.quit()
+        if event.type== pygame.MOUSEBUTTONDOWN:
+            gamestart=True
+
     pygame.display.update()
